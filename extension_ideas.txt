@@ -1,0 +1,6 @@
+  1. Multi-Modal Classification: Support both audio files and real-time microphone
+  input
+  2. Audio Generation: Generate synthetic audio samples for data augmentation
+  3. Real-time Dashboard: Live audio monitoring with classification confidence over
+  time
+  4. Custom Dataset Support: Allow users to upload and train on custom audio datasets

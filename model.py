@@ -21,7 +21,7 @@ class ResidualBlock(nn.Module):
         out = self.conv1(x)
         out = self.bn1(out)
         out = torch.relu(out)
-        out = self.conv2(x)
+        out = self.conv2(out)
         out = self.bn2(out)
         shortcut = self.shortcut(x) if self.use_shortcut else x
         out_add = out + shortcut
