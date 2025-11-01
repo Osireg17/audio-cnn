@@ -3,3 +3,6 @@ torchaudio
 torch
 tqdm
 numpy
+tensorboard
+datasets[audio]
+torchcodec

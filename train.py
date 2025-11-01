@@ -56,7 +56,7 @@ class ESC50Dataset(Dataset):
     def __getitem__(self, idx):
         row = self.metadata.iloc[idx]
         audio_path = self.data_dir / "audio" / row['filename']
-        
+
         waveform, sample_rate = torchaudio.load(audio_path)
         
         if waveform.shape[0] > 1:
@@ -71,7 +71,7 @@ class ESC50Dataset(Dataset):
     
 
 def mixup_data(x, y):
-    lam = np.random.beta(0.2, 0.2)
+    lam = np.random.beta(1.0, 1.0)  # More conservative mixup
     batch_size = x.size(0)
     index = torch.randperm(batch_size).to(x.device) # shuffle the batch of audios
     mixed_x = lam * x + (1 - lam) * x[index, :]
@@ -153,17 +153,17 @@ def train():
     )
     optimizer = torch.optim.Adam(
         model.parameters(),
-        lr=0.0005,
-        weight_decay=0.01
+        lr=0.001,
+        weight_decay=0.0001
     )
 
 
     scheduler = OneCycleLR(
         optimizer,
-        max_lr=0.02,
+        max_lr=0.003,
         steps_per_epoch=len(train_dataloader),
         epochs=num_epochs,
-        pct_start=0.1,
+        pct_start=0.3,
     )
 
     best_accuracy = 0.0 # Track the best validation accuracy
@@ -178,7 +178,7 @@ def train():
         for data, target in progress_bar:
             data, target = data.to(device), target.to(device)
             
-            if np.random.rand() < 0.7: # apply mixup with a probability of 0.7
+            if np.random.rand() < 0.5: # apply mixup with a probability of 0.5
                 data, targets_a, targets_b, lam = mixup_data(data, target)
                 outputs = model(data)
                 loss = mixup_criterion(criterion, outputs, targets_a, targets_b, lam)
@@ -189,6 +189,7 @@ def train():
                 
             optimizer.zero_grad() # remove the gradients from the previous step
             loss.backward() # compute the gradients
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0) # clip gradients to prevent explosion
             optimizer.step() # update the weights
             scheduler.step() # update the learning rate
             
