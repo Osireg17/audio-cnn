@@ -62,10 +62,7 @@ class ESC50Dataset(Dataset):
         if waveform.shape[0] > 1:
             waveform = torch.mean(waveform, dim=0, keepdim=True)
             
-        if self.transform:
-            spectrogram = self.transform(waveform)
-        else:
-            spectrogram = waveform
+        spectrogram = self.transform(waveform) if self.transform else waveform
 
         return spectrogram, row['label_idx']
     

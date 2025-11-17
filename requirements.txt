@@ -6,3 +6,7 @@ numpy
 tensorboard
 datasets[audio]
 torchcodec
+librosa
+fastapi
+pydantic
+soundfile
