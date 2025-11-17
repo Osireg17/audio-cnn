@@ -17,7 +17,7 @@ app = modal.App("audio-cnn-inference")
 image = (modal.Image.debian_slim()
          .pip_install_from_requirements("requirements.txt")
          .apt_install(["libsndfile1"])
-         .add_local_python_source("model.py"))
+         .add_local_python_source("model"))
 
 model_volume = modal.Volume.from_name("esc-model")
 
@@ -121,7 +121,7 @@ class AudioClassifier:
             else:
                 waveform_data = audio_data
 
-        response = {
+        return {
             "predictions": predictions,
             "visualization": viz_data,
             "input_spectrogram": {
@@ -134,8 +134,6 @@ class AudioClassifier:
                 "duration": len(audio_data) / waveform_sample_rate
             }
         }
-
-        return response
 
 
 @app.local_entrypoint()
@@ -155,16 +153,17 @@ def main():
 
     server = AudioClassifier()
     url = server.inference.get_web_url()
-    response = requests.post(url, json=payload)
+    if url is None:
+        raise RuntimeError("Failed to obtain inference URL from local AudioClassifier")
+    response = requests.post(str(url), json=payload)
     response.raise_for_status()
 
     result = response.json()
 
-    waveform_info = result.get("waveform", {})
-    if waveform_info:
+    if (waveform_info := result.get("waveform", {})):
         values = waveform_info.get("values", [])
         print(f"First 10 values: {[round(v, 4) for v in values[:10]]}...")
-        print(f"Duration: {waveform_info.get("duration", 0)}")
+        print(f"Duration: {waveform_info.get('duration', 0)}")
 
     print("Top predictions:")
     for pred in result.get("predictions", []):

@@ -48,18 +48,38 @@ class AudioCNN(nn.Module):
         self.dropout = nn.Dropout(p=0.5)
         self.fc = nn.Linear(512, num_classes)
         
-    def forward(self, x):
+    def forward(self, x, return_feature_maps=False):
+        feature_maps = {}
+
         x = self.conv(x)
+        if return_feature_maps:
+            feature_maps['conv'] = x
+
         for layer in self.layer1:
             x = layer(x)
+        if return_feature_maps:
+            feature_maps['layer1'] = x
+
         for layer in self.layer2:
             x = layer(x)
+        if return_feature_maps:
+            feature_maps['layer2'] = x
+
         for layer in self.layer3:
             x = layer(x)
+        if return_feature_maps:
+            feature_maps['layer3'] = x
+
         for layer in self.layer4:
             x = layer(x)
+        if return_feature_maps:
+            feature_maps['layer4'] = x
+
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
         x = self.dropout(x)
         x = self.fc(x)
+
+        if return_feature_maps:
+            return x, feature_maps
         return x
